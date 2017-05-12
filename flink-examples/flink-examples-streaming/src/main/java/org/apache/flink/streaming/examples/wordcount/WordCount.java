@@ -26,6 +26,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -120,9 +121,11 @@ public class WordCount {
 		}
 	}
 
-	public static class WordIterator implements Iterator<String> {
+	public static class WordIterator implements Iterator<String>, Serializable {
 
-		private Random random = new Random();
+		private static final long serialVersionUID = 5502837294483532978L;
+
+		private final Random random = new Random();
 
 		@Override
 		public boolean hasNext() {
