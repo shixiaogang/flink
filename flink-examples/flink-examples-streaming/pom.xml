@@ -84,8 +84,13 @@ under the License.
 			<scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-statebackend-rocksdb_2.10</artifactId>
+            <version>1.4-SNAPSHOT</version>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

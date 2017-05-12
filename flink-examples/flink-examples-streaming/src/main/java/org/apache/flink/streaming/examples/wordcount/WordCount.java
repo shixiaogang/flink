@@ -20,10 +20,14 @@ package org.apache.flink.streaming.examples.wordcount;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.examples.java.wordcount.util.WordCountData;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
+
+import java.util.Iterator;
+import java.util.Random;
 
 /**
  * Implements the "WordCount" program that computes a simple word occurrence
@@ -63,17 +67,12 @@ public class WordCount {
 		// make parameters available in the web interface
 		env.getConfig().setGlobalJobParameters(params);
 
+		env.setStateBackend(new RocksDBStateBackend("hdfs:///user/xiaogang.sxg/flink/checkpoints/data", true));
+
+		env.enableCheckpointing(10000);
+
 		// get input data
-		DataStream<String> text;
-		if (params.has("input")) {
-			// read the text file from given input path
-			text = env.readTextFile(params.get("input"));
-		} else {
-			System.out.println("Executing WordCount example with default input data set.");
-			System.out.println("Use --input to specify file input.");
-			// get default test text data
-			text = env.fromElements(WordCountData.WORDS);
-		}
+		DataStream<String> text = env.fromCollection(new WordIterator(), String.class);
 
 		DataStream<Tuple2<String, Integer>> counts =
 		// split up the lines in pairs (2-tuples) containing: (word,1)
@@ -118,6 +117,33 @@ public class WordCount {
 					out.collect(new Tuple2<String, Integer>(token, 1));
 				}
 			}
+		}
+	}
+
+	public static class WordIterator implements Iterator<String> {
+
+		private Random random = new Random();
+
+		@Override
+		public boolean hasNext() {
+			return true;
+		}
+
+		@Override
+		public String next() {
+			int length = (int)(random.nextGaussian() * 10) % 10 + 15;
+			byte[] bytes = new byte[length];
+
+			for (int i = 0; i < bytes.length; ++i) {
+				bytes[i] = (byte)random.nextInt(Byte.MAX_VALUE);
+			}
+
+			return new String(bytes);
+		}
+
+		@Override
+		public void remove() {
+			// Do nothing
 		}
 	}
 
